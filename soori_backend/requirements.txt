@@ -1,7 +1,22 @@
-django
-djangorestframework
-djangorestframework-simplejwt
-django-cors-headers
-python-dateutil
-python-dotenv
-argon2-cffi
+# Every version below is PINNED to an exact number, not left open.
+#
+# This file used to have no versions at all -- just "django",
+# "djangorestframework", etc. That meant every fresh install grabbed
+# whatever was newest on PyPI *at that moment*. This bit hard once
+# already: Django 6.1 removed something internal
+# (django.utils.cache.cc_delim_re) that this exact version of DRF
+# still expects, so a brand-new install broke with an ImportError that
+# had nothing to do with anything in this project's own code.
+#
+# Pinning means "pip install -r requirements.txt" installs the SAME
+# versions every time, on every machine, forever -- what's tested here
+# is exactly what runs anywhere. Upgrading later is a deliberate,
+# tested decision, not something that happens by accident because a
+# venv got recreated.
+Django==6.0.7
+djangorestframework==3.17.2
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+argon2-cffi==25.1.0
