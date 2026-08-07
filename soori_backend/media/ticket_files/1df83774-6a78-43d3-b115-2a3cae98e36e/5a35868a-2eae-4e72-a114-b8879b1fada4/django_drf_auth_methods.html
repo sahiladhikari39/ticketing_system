@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django REST Framework Authentication Methods - Function Based Views</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-muted: #334155;
+    --border: #475569;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-quaternary: #64748b;
+    --accent-blue: #38bdf8;
+    --accent-green: #4ade80;
+    --accent-red: #f87171;
+    --accent-yellow: #fbbf24;
+    --accent-purple: #a78bfa;
+    --accent-orange: #fb923c;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; text-align: center; }
+  .subtitle { text-align: center; color: var(--text-secondary); font-size: 15px; margin-bottom: 24px; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; flex-wrap: wrap; }
+  .tab-btn {
+    padding: 10px 18px; background: none; border: none; cursor: pointer;
+    color: var(--text-secondary); font-size: 14px; font-weight: 500;
+    border-bottom: 2px solid transparent; transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text-primary); }
+  .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 16px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 10px;
+  }
+  .card-body { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+  .card-body code {
+    background: var(--surface-muted); padding: 2px 6px; border-radius: 4px;
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-blue);
+  }
+
+  .code-block {
+    background: #0b1120; border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px; font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+    overflow-x: auto; margin: 14px 0; white-space: pre;
+    color: #e2e8f0;
+  }
+  .code-block .kw { color: #c678dd; }
+  .code-block .cls { color: #e5c07b; }
+  .code-block .str { color: #98c379; }
+  .code-block .num { color: #d19a66; }
+  .code-block .cmt { color: #5c6370; font-style: italic; }
+  .code-block .fn { color: #61afef; }
+  .code-block .decorator { color: #d19a66; }
+  .code-block .operator { color: #56b6c2; }
+
+  .highlight-box {
+    background: rgba(56, 189, 248, 0.08); border-left: 3px solid var(--accent-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 14px 0;
+    font-size: 14px; color: var(--text-secondary);
+  }
+  .highlight-box.warn { background: rgba(251, 191, 36, 0.08); border-left-color: var(--accent-yellow); }
+  .highlight-box.danger { background: rgba(248, 113, 113, 0.08); border-left-color: var(--accent-red); }
+  .highlight-box.positive { background: rgba(74, 222, 128, 0.08); border-left-color: var(--accent-green); }
+  .highlight-box strong { color: var(--text-primary); }
+
+  .flow-container { display: flex; flex-direction: column; gap: 10px; padding: 16px; align-items: center; }
+  .flow-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .flow-box {
+    padding: 12px 18px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 13px; font-weight: 600; text-align: center; min-width: 120px;
+    background: var(--surface-muted);
+  }
+  .flow-box.client { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.1); }
+  .flow-box.server { border-color: var(--accent-green); background: rgba(74, 222, 128, 0.1); }
+  .flow-box.db { border-color: var(--accent-purple); background: rgba(167, 139, 250, 0.1); }
+  .flow-box.token { border-color: var(--accent-orange); background: rgba(251, 146, 60, 0.1); }
+  .flow-arrow { color: var(--text-quaternary); font-size: 20px; }
+  .flow-box .small { font-size: 11px; color: var(--text-quaternary); font-weight: 400; display: block; margin-top: 4px; }
+
+  .comparison-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .comparison-table th { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-weight: 600; background: var(--surface-muted); }
+  .comparison-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+  .comparison-table tr:hover td { background: rgba(71, 85, 105, 0.3); }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .tag-good { background: rgba(74, 222, 128, 0.15); color: var(--accent-green); }
+  .tag-bad { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+  .tag-mid { background: rgba(251, 191, 36, 0.15); color: var(--accent-yellow); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } .flow-row { flex-direction: column; } }
+
+  .method-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; cursor: pointer; transition: all 0.2s ease;
+  }
+  .method-card:hover { border-color: var(--accent-blue); background: rgba(56, 189, 248, 0.05); }
+  .method-card h4 { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .method-card p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  .step-list { list-style: none; padding: 0; margin: 0; }
+  .step-list li { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--accent-blue);
+    color: var(--bg); display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+  .step-list li div:last-child { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+  .step-list li div:last-child strong { color: var(--text-primary); }
+
+  .icon { width: 22px; height: 22px; display: inline-block; vertical-align: middle; }
+  .icon svg { width: 100%; height: 100%; }
+
+  .footer { text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-quaternary); font-size: 13px; }
+
+  .section-label {
+    display: inline-block; background: var(--accent-blue); color: var(--bg);
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 4px 10px; border-radius: 6px; margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Django REST Framework Authentication Methods</h1>
+  <p class="subtitle">Function Based Views Only &mdash; Custom Register &amp; Login for Every Method</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="session">Session</button>
+    <button class="tab-btn" data-tab="token">Token</button>
+    <button class="tab-btn" data-tab="jwt">JWT</button>
+    <button class="tab-btn" data-tab="pem">PEM / mTLS</button>
+    <button class="tab-btn" data-tab="compare">Comparison</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <div class="card">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Authentication in Django REST Framework (Function Based Views)
+      </div>
+      <div class="card-body">
+        This guide uses <strong>function-based views only</strong> (no class-based views) and includes <strong>custom register and custom login</strong> code for every authentication method. Each method trades off between security, scalability, and ease of implementation.
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="method-card" onclick="switchTab('session')">
+        <h4>Session Authentication</h4>
+        <p>Custom <code>@api_view</code> register and login using Django's session framework. Cookie-based auth for browser clients.</p>
+      </div>
+      <div class="method-card" onclick="switchTab('token')">
+        <h4>Token Authentication</h4>
+        <p>Custom <code>@api_view</code> register and login. Generates a DRF token on login and returns it in the response.</p>
+      </div>
+      <div class="method-card" onclick="switchTab('jwt')">
+        <h4>JWT Authentication</h4>
+        <p>Custom <code>@api_view</code> register and login. Issues access + refresh tokens on successful login.</p>
+      </div>
+      <div class="method-card" onclick="switchTab('pem')">
+        <h4>PEM / mTLS Authentication</h4>
+        <p>Custom <code>@api_view</code> register that stores public keys. No login endpoint &mdash; auth is per-request via signature.</p>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top: 16px;">
+      <strong>Rule of thumb:</strong> Use <strong>Session</strong> for server-rendered pages, <strong>Token</strong> for simple APIs, <strong>JWT</strong> for scalable SPAs/mobile apps, and <strong>PEM/mTLS</strong> for service-to-service or high-security environments.
+    </div>
+  </div>
+
+  <!-- SESSION -->
+  <div class="panel" id="panel-session">
+    <div class="card">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Session Authentication (Function Based Views)
+      </div>
+      <div class="card-body">
+        Uses Django's built-in session framework. After custom login, the server creates a session record and sends a <code>sessionid</code> cookie. Every subsequent request includes this cookie automatically.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">How it works</div>
+      <div class="flow-container">
+        <div class="flow-row">
+          <div class="flow-box client">Client<span class="small">Browser</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">POST /login<span class="small">username + password</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box db">Django Auth<span class="small">authenticate()</span></div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box client">Set-Cookie:<br>sessionid=abc<span class="small">HttpOnly; Secure</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box db">Create session<span class="small">DB / cache</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box server">Login success<span class="small">200 OK</span></div>
+        </div>
+        <div class="flow-row" style="margin-top:10px;">
+          <div class="flow-box client">Cookie: sessionid=abc<span class="small">every request</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">DRF checks<span class="small">SessionAuthentication</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box db">Lookup session<span class="small">DB / cache</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">Return data<span class="small">200 OK</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Register</div>
+      <div class="card-title">Custom Register (Function Based View)</div>
+      <div class="code-block"><span class="cmt"># serializers.py</span>
+<span class="kw">from</span> rest_framework <span class="kw">import</span> serializers
+<span class="kw">from</span> django.contrib.auth.models <span class="kw">import</span> User
+<span class="kw">from</span> django.contrib.auth.password_validation <span class="kw">import</span> validate_password
+
+<span class="kw">class</span> <span class="cls">RegisterSerializer</span>(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=<span class="kw">True</span>, required=<span class="kw">True</span>, validators=[validate_password]
+    )
+    password2 = serializers.CharField(write_only=<span class="kw">True</span>, required=<span class="kw">True</span>)
+
+    <span class="kw">class</span> <span class="cls">Meta</span>:
+        model = User
+        fields = (<span class="str">'username'</span>, <span class="str">'password'</span>, <span class="str">'password2'</span>, <span class="str">'email'</span>, <span class="str">'first_name'</span>, <span class="str">'last_name'</span>)
+
+    <span class="kw">def</span> <span class="fn">validate</span>(<span class="kw">self</span>, attrs):
+        <span class="kw">if</span> attrs[<span class="str">'password'</span>] != attrs[<span class="str">'password2'</span>]:
+            <span class="kw">raise</span> serializers.ValidationError(
+                {<span class="str">'password'</span>: <span class="str">'Password fields did not match.'</span>}
+            )
+        <span class="kw">return</span> attrs
+
+    <span class="kw">def</span> <span class="fn">create</span>(<span class="kw">self</span>, validated_data):
+        validated_data.pop(<span class="str">'password2'</span>)
+        user = User.objects.create_user(**validated_data)
+        <span class="kw">return</span> user
+
+<span class="cmt"># views.py — Function Based View</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">register_view</span>(request):
+    serializer = RegisterSerializer(data=request.data)
+    <span class="kw">if</span> serializer.is_valid():
+        user = serializer.save()
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'User registered successfully'</span>,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+        }, status=status.HTTP_201_CREATED)
+    <span class="kw">return</span> Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+]</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Login</div>
+      <div class="card-title">Custom Login (Function Based View)</div>
+      <div class="code-block"><span class="cmt"># settings.py</span>
+<span class="cls">REST_FRAMEWORK</span> = {
+    <span class="str">'DEFAULT_AUTHENTICATION_CLASSES'</span>: [
+        <span class="str">'rest_framework.authentication.SessionAuthentication'</span>,
+    ],
+    <span class="str">'DEFAULT_PERMISSION_CLASSES'</span>: [
+        <span class="str">'rest_framework.permissions.IsAuthenticated'</span>,
+    ],
+}
+
+<span class="cmt"># views.py — Custom Login (Function Based View)</span>
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> authenticate, login
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">login_view</span>(request):
+    username = request.data.get(<span class="str">'username'</span>)
+    password = request.data.get(<span class="str">'password'</span>)
+
+    <span class="kw">if</span> <span class="kw">not</span> username <span class="kw">or</span> <span class="kw">not</span> password:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Please provide both username and password.'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(request, username=username, password=password)
+
+    <span class="kw">if</span> user <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
+        login(request, user)
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'Login successful'</span>,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+        }, status=status.HTTP_200_OK)
+    <span class="kw">else</span>:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Invalid credentials'</span>
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+<span class="cmt"># views.py — Custom Logout</span>
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> logout
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fn">logout_view</span>(request):
+    logout(request)
+    <span class="kw">return</span> Response({
+        <span class="str">'message'</span>: <span class="str">'Logout successful'</span>
+    }, status=status.HTTP_200_OK)
+
+<span class="cmt"># views.py — Protected endpoint (Function Based View)</span>
+<span class="decorator">@api_view</span>([<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">profile_view</span>(request):
+    <span class="kw">return</span> Response({
+        <span class="str">'username'</span>: request.user.username,
+        <span class="str">'email'</span>: request.user.email,
+    })
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view, login_view, logout_view, profile_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+    path(<span class="str">'login/'</span>, login_view, name=<span class="str">'login'</span>),
+    path(<span class="str">'logout/'</span>, logout_view, name=<span class="str">'logout'</span>),
+    path(<span class="str">'profile/'</span>, profile_view, name=<span class="str">'profile'</span>),
+]
+
+<span class="cmt"># Client usage</span>
+<span class="cmt"># 1. Register</span>
+<span class="cmt"># curl -X POST http://api.example.com/register/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","password":"secret123","password2":"secret123","email":"john@example.com"}'</span>
+
+<span class="cmt"># 2. Login (sets session cookie)</span>
+<span class="cmt"># curl -X POST http://api.example.com/login/ \</span>
+<span class="cmt">#   -c cookies.txt -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","password":"secret123"}'</span>
+
+<span class="cmt"># 3. Access protected endpoint</span>
+<span class="cmt"># curl http://api.example.com/profile/ -b cookies.txt</span>
+
+<span class="cmt"># 4. Logout</span>
+<span class="cmt"># curl -X POST http://api.example.com/logout/ -b cookies.txt</span></div>
+    </div>
+
+    <div class="highlight-box positive">
+      <strong>Pros:</strong> Simple, battle-tested, CSRF protection built-in, easy logout (server invalidates session).
+    </div>
+    <div class="highlight-box warn">
+      <strong>Cons:</strong> Requires cookies (not ideal for mobile/native apps), session DB lookup on every request, harder to scale across multiple servers without shared session storage.
+    </div>
+  </div>
+
+  <!-- TOKEN -->
+  <div class="panel" id="panel-token">
+    <div class="card">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        Token Authentication (Function Based Views)
+      </div>
+      <div class="card-body">
+        DRF's built-in token authentication. Each user gets one persistent token stored in the database. The client sends <code>Authorization: Token &lt;key&gt;</code> in every request header. <strong>All views are function-based.</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">How it works</div>
+      <div class="flow-container">
+        <div class="flow-row">
+          <div class="flow-box client">Client<span class="small">Mobile / SPA</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">POST /login<span class="small">username + password</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box db">authenticate()<span class="small">verify credentials</span></div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box token">Token: 9944b...<span class="small">stored client-side</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box db">Token model<span class="small">DB row per user</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box server">Generate token<span class="small">get_or_create</span></div>
+        </div>
+        <div class="flow-row" style="margin-top:10px;">
+          <div class="flow-box client">Authorization:<br>Token 9944b...<span class="small">header on every request</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">DRF checks<span class="small">TokenAuthentication</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box db">SELECT token<span class="small">DB lookup</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">Return data<span class="small">200 OK</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Register</div>
+      <div class="card-title">Custom Register + Auto-Create Token (FBV)</div>
+      <div class="code-block"><span class="cmt"># serializers.py</span>
+<span class="kw">from</span> rest_framework <span class="kw">import</span> serializers
+<span class="kw">from</span> django.contrib.auth.models <span class="kw">import</span> User
+<span class="kw">from</span> django.contrib.auth.password_validation <span class="kw">import</span> validate_password
+
+<span class="kw">class</span> <span class="cls">RegisterSerializer</span>(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=<span class="kw">True</span>, required=<span class="kw">True</span>, validators=[validate_password]
+    )
+    password2 = serializers.CharField(write_only=<span class="kw">True</span>, required=<span class="kw">True</span>)
+
+    <span class="kw">class</span> <span class="cls">Meta</span>:
+        model = User
+        fields = (<span class="str">'username'</span>, <span class="str">'email'</span>, <span class="str">'password'</span>, <span class="str">'password2'</span>)
+
+    <span class="kw">def</span> <span class="fn">validate</span>(<span class="kw">self</span>, attrs):
+        <span class="kw">if</span> attrs[<span class="str">'password'</span>] != attrs[<span class="str">'password2'</span>]:
+            <span class="kw">raise</span> serializers.ValidationError(
+                {<span class="str">'password'</span>: <span class="str">'Passwords do not match.'</span>}
+            )
+        <span class="kw">return</span> attrs
+
+    <span class="kw">def</span> <span class="fn">create</span>(<span class="kw">self</span>, validated_data):
+        validated_data.pop(<span class="str">'password2'</span>)
+        user = User.objects.create_user(**validated_data)
+        <span class="kw">return</span> user
+
+<span class="cmt"># views.py — Function Based Views</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+<span class="kw">from</span> rest_framework.authtoken.models <span class="kw">import</span> Token
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">register_view</span>(request):
+    serializer = RegisterSerializer(data=request.data)
+    <span class="kw">if</span> serializer.is_valid():
+        user = serializer.save()
+        token, _ = Token.objects.get_or_create(user=user)
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'User registered successfully'</span>,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+            <span class="str">'token'</span>: token.key,
+        }, status=status.HTTP_201_CREATED)
+    <span class="kw">return</span> Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+]</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Login</div>
+      <div class="card-title">Custom Login (Function Based View)</div>
+      <div class="code-block"><span class="cmt"># settings.py</span>
+<span class="cls">INSTALLED_APPS</span> = [
+    ...
+    <span class="str">'rest_framework'</span>,
+    <span class="str">'rest_framework.authtoken'</span>,
+]
+
+<span class="cls">REST_FRAMEWORK</span> = {
+    <span class="str">'DEFAULT_AUTHENTICATION_CLASSES'</span>: [
+        <span class="str">'rest_framework.authentication.TokenAuthentication'</span>,
+    ],
+}
+
+<span class="cmt"># views.py — Custom Login (Function Based View)</span>
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> authenticate
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+<span class="kw">from</span> rest_framework.authtoken.models <span class="kw">import</span> Token
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">login_view</span>(request):
+    username = request.data.get(<span class="str">'username'</span>)
+    password = request.data.get(<span class="str">'password'</span>)
+
+    <span class="kw">if</span> <span class="kw">not</span> username <span class="kw">or</span> <span class="kw">not</span> password:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Please provide both username and password.'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(username=username, password=password)
+
+    <span class="kw">if</span> user <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
+        token, _ = Token.objects.get_or_create(user=user)
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'Login successful'</span>,
+            <span class="str">'token'</span>: token.key,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+        }, status=status.HTTP_200_OK)
+    <span class="kw">else</span>:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Invalid credentials'</span>
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+<span class="cmt"># views.py — Custom Logout (delete token)</span>
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fn">logout_view</span>(request):
+    <span class="kw">try</span>:
+        request.user.auth_token.delete()
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'Logout successful. Token deleted.'</span>
+        }, status=status.HTTP_200_OK)
+    <span class="kw">except</span> Token.DoesNotExist:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'No token found'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># views.py — Protected endpoint (Function Based View)</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> IsAuthenticated
+
+<span class="decorator">@api_view</span>([<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">profile_view</span>(request):
+    <span class="kw">return</span> Response({
+        <span class="str">'user'</span>: request.user.username,
+        <span class="str">'email'</span>: request.user.email,
+    })
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view, login_view, logout_view, profile_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+    path(<span class="str">'login/'</span>, login_view, name=<span class="str">'login'</span>),
+    path(<span class="str">'logout/'</span>, logout_view, name=<span class="str">'logout'</span>),
+    path(<span class="str">'profile/'</span>, profile_view, name=<span class="str">'profile'</span>),
+]
+
+<span class="cmt"># Client usage</span>
+<span class="cmt"># 1. Register (returns token immediately)</span>
+<span class="cmt"># curl -X POST http://api.example.com/register/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","email":"john@example.com","password":"secret123","password2":"secret123"}'</span>
+
+<span class="cmt"># 2. Login (get token)</span>
+<span class="cmt"># curl -X POST http://api.example.com/login/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","password":"secret123"}'</span>
+<span class="cmt"># Response: {"token":"9944b09199c62bcf9418ad846...","user_id":1,...}</span>
+
+<span class="cmt"># 3. Access protected endpoint</span>
+<span class="cmt"># curl -H "Authorization: Token 9944b09199c62bcf9418ad846..." \</span>
+<span class="cmt">#      http://api.example.com/profile/</span>
+
+<span class="cmt"># 4. Logout (delete token)</span>
+<span class="cmt"># curl -X POST http://api.example.com/logout/ \</span>
+<span class="cmt">#   -H "Authorization: Token 9944b09199c62bcf9418ad846..."</span></div>
+    </div>
+
+    <div class="highlight-box positive">
+      <strong>Pros:</strong> Simple to set up, works with any HTTP client, no cookies needed, easy to test with curl.
+    </div>
+    <div class="highlight-box warn">
+      <strong>Cons:</strong> One token per user (no expiry), token stored in DB (lookup on every request), no built-in refresh mechanism, token theft is permanent until manually revoked.
+    </div>
+  </div>
+
+  <!-- JWT -->
+  <div class="panel" id="panel-jwt">
+    <div class="card">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        JWT Authentication (Function Based Views)
+      </div>
+      <div class="card-body">
+        Stateless authentication using signed tokens. The server issues an <strong>access token</strong> (short-lived) and a <strong>refresh token</strong> (long-lived). No database lookup per request. <strong>All views are function-based.</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">How it works</div>
+      <div class="flow-container">
+        <div class="flow-row">
+          <div class="flow-box client">Client<span class="small">SPA / Mobile</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">POST /login<span class="small">username + password</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box db">authenticate()<span class="small">verify credentials</span></div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box token">Access + Refresh<span class="small">JWT tokens returned</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box server">Sign JWT<span class="small">with secret key</span></div>
+          <div class="flow-arrow">&larr;</div>
+          <div class="flow-box db">User valid<span class="small">generate tokens</span></div>
+        </div>
+        <div class="flow-row" style="margin-top:10px;">
+          <div class="flow-box client">Authorization:<br>Bearer &lt;access&gt;<span class="small">header on every request</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">DRF verifies<span class="small">JWT signature</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">Decode payload<span class="small">user_id, exp, iat</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">Return data<span class="small">200 OK - no DB hit!</span></div>
+        </div>
+        <div class="flow-row" style="margin-top:10px;">
+          <div class="flow-box client">POST /token/refresh<span class="small">when access expires</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box server">Verify refresh<span class="small">check blacklist</span></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-box token">New access token<span class="small">returned</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Register</div>
+      <div class="card-title">Custom Register + JWT Response (FBV)</div>
+      <div class="code-block"><span class="cmt"># Install: pip install djangorestframework-simplejwt</span>
+
+<span class="cmt"># serializers.py</span>
+<span class="kw">from</span> rest_framework <span class="kw">import</span> serializers
+<span class="kw">from</span> django.contrib.auth.models <span class="kw">import</span> User
+<span class="kw">from</span> django.contrib.auth.password_validation <span class="kw">import</span> validate_password
+
+<span class="kw">class</span> <span class="cls">RegisterSerializer</span>(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=<span class="kw">True</span>, required=<span class="kw">True</span>, validators=[validate_password]
+    )
+    password2 = serializers.CharField(write_only=<span class="kw">True</span>, required=<span class="kw">True</span>)
+
+    <span class="kw">class</span> <span class="cls">Meta</span>:
+        model = User
+        fields = (<span class="str">'username'</span>, <span class="str">'email'</span>, <span class="str">'password'</span>, <span class="str">'password2'</span>)
+
+    <span class="kw">def</span> <span class="fn">validate</span>(<span class="kw">self</span>, attrs):
+        <span class="kw">if</span> attrs[<span class="str">'password'</span>] != attrs[<span class="str">'password2'</span>]:
+            <span class="kw">raise</span> serializers.ValidationError(
+                {<span class="str">'password'</span>: <span class="str">'Passwords do not match.'</span>}
+            )
+        <span class="kw">return</span> attrs
+
+    <span class="kw">def</span> <span class="fn">create</span>(<span class="kw">self</span>, validated_data):
+        validated_data.pop(<span class="str">'password2'</span>)
+        user = User.objects.create_user(**validated_data)
+        <span class="kw">return</span> user
+
+<span class="cmt"># views.py — Function Based Views</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+<span class="kw">from</span> rest_framework_simplejwt.tokens <span class="kw">import</span> RefreshToken
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">register_view</span>(request):
+    serializer = RegisterSerializer(data=request.data)
+    <span class="kw">if</span> serializer.is_valid():
+        user = serializer.save()
+
+        <span class="cmt"># Generate JWT tokens for the new user</span>
+        refresh = RefreshToken.for_user(user)
+
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'User registered successfully'</span>,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+            <span class="str">'refresh'</span>: <span class="fn">str</span>(refresh),
+            <span class="str">'access'</span>: <span class="fn">str</span>(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
+    <span class="kw">return</span> Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+]</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Login</div>
+      <div class="card-title">Custom Login with JWT (Function Based View)</div>
+      <div class="code-block"><span class="cmt"># settings.py</span>
+<span class="kw">from</span> datetime <span class="kw">import</span> timedelta
+
+<span class="cls">REST_FRAMEWORK</span> = {
+    <span class="str">'DEFAULT_AUTHENTICATION_CLASSES'</span>: [
+        <span class="str">'rest_framework_simplejwt.authentication.JWTAuthentication'</span>,
+    ],
+}
+
+<span class="cls">SIMPLE_JWT</span> = {
+    <span class="str">'ACCESS_TOKEN_LIFETIME'</span>: timedelta(minutes=<span class="num">15</span>),
+    <span class="str">'REFRESH_TOKEN_LIFETIME'</span>: timedelta(days=<span class="num">7</span>),
+    <span class="str">'ROTATE_REFRESH_TOKENS'</span>: <span class="kw">True</span>,
+    <span class="str">'BLACKLIST_AFTER_ROTATION'</span>: <span class="kw">True</span>,
+    <span class="str">'ALGORITHM'</span>: <span class="str">'HS256'</span>,
+    <span class="str">'SIGNING_KEY'</span>: SECRET_KEY,
+}
+
+<span class="cmt"># views.py — Custom Login (Function Based View)</span>
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> authenticate
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+<span class="kw">from</span> rest_framework_simplejwt.tokens <span class="kw">import</span> RefreshToken
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">login_view</span>(request):
+    username = request.data.get(<span class="str">'username'</span>)
+    password = request.data.get(<span class="str">'password'</span>)
+
+    <span class="kw">if</span> <span class="kw">not</span> username <span class="kw">or</span> <span class="kw">not</span> password:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Please provide both username and password.'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(username=username, password=password)
+
+    <span class="kw">if</span> user <span class="kw">is</span> <span class="kw">not</span> <span class="kw">None</span>:
+        refresh = RefreshToken.for_user(user)
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'Login successful'</span>,
+            <span class="str">'refresh'</span>: <span class="fn">str</span>(refresh),
+            <span class="str">'access'</span>: <span class="fn">str</span>(refresh.access_token),
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+        }, status=status.HTTP_200_OK)
+    <span class="kw">else</span>:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Invalid credentials'</span>
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+<span class="cmt"># views.py — Custom Refresh (Function Based View)</span>
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">refresh_view</span>(request):
+    refresh_token = request.data.get(<span class="str">'refresh'</span>)
+
+    <span class="kw">if</span> <span class="kw">not</span> refresh_token:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Refresh token is required.'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    <span class="kw">try</span>:
+        refresh = RefreshToken(refresh_token)
+        <span class="kw">return</span> Response({
+            <span class="str">'access'</span>: <span class="fn">str</span>(refresh.access_token),
+        }, status=status.HTTP_200_OK)
+    <span class="kw">except</span> <span class="cls">Exception</span>:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Invalid or expired refresh token.'</span>
+        }, status=status.HTTP_401_UNAUTHORIZED)
+
+<span class="cmt"># views.py — Custom Logout (blacklist refresh token)</span>
+<span class="kw">from</span> rest_framework_simplejwt.tokens <span class="kw">import</span> OutstandingToken, BlacklistedToken
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="kw">def</span> <span class="fn">logout_view</span>(request):
+    <span class="kw">try</span>:
+        refresh_token = request.data.get(<span class="str">'refresh'</span>)
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'Logout successful. Token blacklisted.'</span>
+        }, status=status.HTTP_200_OK)
+    <span class="kw">except</span> <span class="cls">Exception</span>:
+        <span class="kw">return</span> Response({
+            <span class="str">'error'</span>: <span class="str">'Invalid token'</span>
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># views.py — Protected endpoint (Function Based View)</span>
+<span class="decorator">@api_view</span>([<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">profile_view</span>(request):
+    <span class="kw">return</span> Response({
+        <span class="str">'message'</span>: <span class="str">'Hello, '</span> + request.user.username,
+        <span class="str">'email'</span>: request.user.email,
+    })
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> (
+    register_view, login_view, refresh_view, logout_view, profile_view
+)
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+    path(<span class="str">'login/'</span>, login_view, name=<span class="str">'login'</span>),
+    path(<span class="str">'token/refresh/'</span>, refresh_view, name=<span class="str">'token_refresh'</span>),
+    path(<span class="str">'logout/'</span>, logout_view, name=<span class="str">'logout'</span>),
+    path(<span class="str">'profile/'</span>, profile_view, name=<span class="str">'profile'</span>),
+]
+
+<span class="cmt"># Client usage</span>
+<span class="cmt"># 1. Register (returns JWT tokens immediately)</span>
+<span class="cmt"># curl -X POST http://api.example.com/register/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","email":"john@example.com","password":"secret123","password2":"secret123"}'</span>
+
+<span class="cmt"># 2. Login (get tokens)</span>
+<span class="cmt"># curl -X POST http://api.example.com/login/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"john","password":"secret123"}'</span>
+<span class="cmt"># Response: {"refresh":"eyJ0...","access":"eyJ0eXAiOiJKV1QiLCJhbGc...",...}</span>
+
+<span class="cmt"># 3. Access protected endpoint</span>
+<span class="cmt"># curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc..." \</span>
+<span class="cmt">#      http://api.example.com/profile/</span>
+
+<span class="cmt"># 4. Refresh access token</span>
+<span class="cmt"># curl -X POST http://api.example.com/token/refresh/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"refresh":"eyJ0..."}'</span>
+
+<span class="cmt"># 5. Logout (blacklist refresh token)</span>
+<span class="cmt"># curl -X POST http://api.example.com/logout/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"refresh":"eyJ0..."}'</span></div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>JWT Structure:</strong> <code>header.payload.signature</code> — Base64Url encoded. The payload contains claims like <code>user_id</code>, <code>exp</code> (expiry), <code>iat</code> (issued at).
+    </div>
+    <div class="highlight-box positive">
+      <strong>Pros:</strong> Stateless (no DB lookup per request), scalable, short-lived access tokens reduce damage from theft, refresh token rotation improves security, industry standard.
+    </div>
+    <div class="highlight-box warn">
+      <strong>Cons:</strong> Cannot revoke access tokens before expiry (unless using a blacklist), slightly more complex client logic (handling refresh), token size is larger than simple tokens.
+    </div>
+  </div>
+
+  <!-- PEM / mTLS -->
+  <div class="panel" id="panel-pem">
+    <div class="card">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 7.5M7 21l2-2"/></svg>
+        PEM / mTLS Authentication (Function Based Views)
+      </div>
+      <div class="card-body">
+        <strong>PEM</strong> (Privacy Enhanced Mail) files contain cryptographic keys (RSA/ECDSA). In DRF, PEM-based auth means either: (1) <strong>Client Certificate Authentication (mTLS)</strong> where the client presents a certificate, or (2) <strong>Custom RSA key-pair auth</strong> where the client signs requests with a private key and the server verifies with a public key. <strong>All views are function-based.</strong>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Method A: Client Certificate (mTLS)</div>
+      <div class="card-body">
+        The server requests a client certificate during the TLS handshake. Nginx/Apache validates the certificate, then passes a header to DRF identifying the authenticated client.
+      </div>
+    </div>
+
+    <div class="flow-container">
+      <div class="flow-row">
+        <div class="flow-box client">Client<span class="small">with .pem cert</span></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box server">TLS Handshake<span class="small">server requests cert</span></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box server">Nginx validates<span class="small">CA-signed cert</span></div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box server">SSL_CLIENT_VERIFY<span class="small">header passed to DRF</span></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box server">Custom Auth class<span class="small">reads header</span></div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-box server">Return data<span class="small">200 OK</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Register</div>
+      <div class="card-title">Custom Register with Key Generation (FBV)</div>
+      <div class="code-block"><span class="cmt"># models.py — extend User with certificate fields</span>
+<span class="kw">from</span> django.contrib.auth.models <span class="kw">import</span> AbstractUser
+<span class="kw">from</span> django.db <span class="kw">import</span> models
+
+<span class="kw">class</span> <span class="cls">User</span>(AbstractUser):
+    <span class="cmt"># For mTLS: store certificate CN mapping</span>
+    client_cert_cn = models.CharField(
+        max_length=<span class="num">255</span>, blank=<span class="kw">True</span>, null=<span class="kw">True</span>, unique=<span class="kw">True</span>
+    )
+    <span class="cmt"># For RSA key-pair: store public key</span>
+    public_key_pem = models.TextField(blank=<span class="kw">True</span>, null=<span class="kw">True</span>)
+    api_key = models.CharField(
+        max_length=<span class="num">64</span>, blank=<span class="kw">True</span>, null=<span class="kw">True</span>, unique=<span class="kw">True</span>
+    )
+
+<span class="cmt"># serializers.py</span>
+<span class="kw">import</span> secrets
+<span class="kw">from</span> rest_framework <span class="kw">import</span> serializers
+<span class="kw">from</span> .models <span class="kw">import</span> User
+
+<span class="kw">class</span> <span class="cls">RegisterSerializer</span>(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=<span class="kw">True</span>, required=<span class="kw">True</span>)
+    password2 = serializers.CharField(write_only=<span class="kw">True</span>, required=<span class="kw">True</span>)
+    <span class="cmt"># Optionally accept a public key during registration</span>
+    public_key_pem = serializers.CharField(required=<span class="kw">False</span>, allow_blank=<span class="kw">True</span>)
+
+    <span class="kw">class</span> <span class="cls">Meta</span>:
+        model = User
+        fields = (<span class="str">'username'</span>, <span class="str">'email'</span>, <span class="str">'password'</span>, <span class="str">'password2'</span>, <span class="str">'public_key_pem'</span>)
+
+    <span class="kw">def</span> <span class="fn">validate</span>(<span class="kw">self</span>, attrs):
+        <span class="kw">if</span> attrs[<span class="str">'password'</span>] != attrs[<span class="str">'password2'</span>]:
+            <span class="kw">raise</span> serializers.ValidationError(
+                {<span class="str">'password'</span>: <span class="str">'Passwords do not match.'</span>}
+            )
+        <span class="kw">return</span> attrs
+
+    <span class="kw">def</span> <span class="fn">create</span>(<span class="kw">self</span>, validated_data):
+        validated_data.pop(<span class="str">'password2'</span>)
+        public_key = validated_data.pop(<span class="str">'public_key_pem'</span>, <span class="str">''</span>)
+        user = User.objects.create_user(**validated_data)
+        user.public_key_pem = public_key
+        user.api_key = secrets.token_urlsafe(<span class="num">32</span>)
+        user.save()
+        <span class="kw">return</span> user
+
+<span class="cmt"># views.py — Function Based View</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view, permission_classes
+<span class="kw">from</span> rest_framework.response <span class="kw">import</span> Response
+<span class="kw">from</span> rest_framework.permissions <span class="kw">import</span> AllowAny
+<span class="kw">from</span> rest_framework <span class="kw">import</span> status
+
+<span class="decorator">@api_view</span>([<span class="str">'POST'</span>])
+<span class="decorator">@permission_classes</span>([AllowAny])
+<span class="kw">def</span> <span class="fn">register_view</span>(request):
+    serializer = RegisterSerializer(data=request.data)
+    <span class="kw">if</span> serializer.is_valid():
+        user = serializer.save()
+        <span class="kw">return</span> Response({
+            <span class="str">'message'</span>: <span class="str">'User registered successfully'</span>,
+            <span class="str">'user_id'</span>: user.id,
+            <span class="str">'username'</span>: user.username,
+            <span class="str">'api_key'</span>: user.api_key,
+            <span class="str">'note'</span>: <span class="str">'Store your API key securely. It will not be shown again.'</span>,
+        }, status=status.HTTP_201_CREATED)
+    <span class="kw">return</span> Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+]</div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Auth / Login</div>
+      <div class="card-title">Custom RSA Key-Pair Authentication (FBV)</div>
+      <div class="code-block"><span class="cmt"># Nginx config (reverse proxy for mTLS)</span>
+server {
+    listen 443 ssl;
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    ssl_client_certificate /etc/nginx/ssl/ca.crt;
+    ssl_verify_client <span class="kw">on</span>;
+
+    location / {
+        proxy_pass http://django_app;
+        proxy_set_header SSL_CLIENT_VERIFY <span class="str">$ssl_client_verify</span>;
+        proxy_set_header SSL_CLIENT_DN <span class="str">$ssl_client_s_dn</span>;
+    }
+}
+
+<span class="cmt"># authentication.py — RSA signature verification</span>
+<span class="kw">import</span> base64
+<span class="kw">from</span> cryptography.hazmat.primitives <span class="kw">import</span> hashes, serialization
+<span class="kw">from</span> cryptography.hazmat.primitives.asymmetric <span class="kw">import</span> padding
+<span class="kw">from</span> rest_framework <span class="kw">import</span> authentication, exceptions
+<span class="kw">from</span> .models <span class="kw">import</span> User
+
+<span class="kw">class</span> <span class="cls">RSASignatureAuthentication</span>(authentication.BaseAuthentication):
+    <span class="kw">def</span> <span class="fn">authenticate</span>(<span class="kw">self</span>, request):
+        api_key = request.headers.get(<span class="str">'X-Api-Key'</span>)
+        signature = request.headers.get(<span class="str">'X-Signature'</span>)
+        <span class="kw">if</span> <span class="kw">not</span> api_key <span class="kw">or</span> <span class="kw">not</span> signature:
+            <span class="kw">return</span> <span class="kw">None</span>
+
+        <span class="kw">try</span>:
+            user = User.objects.get(api_key=api_key)
+        <span class="kw">except</span> User.DoesNotExist:
+            <span class="kw">raise</span> exceptions.AuthenticationFailed(<span class="str">'Invalid API key'</span>)
+
+        <span class="kw">if</span> <span class="kw">not</span> user.public_key_pem:
+            <span class="kw">raise</span> exceptions.AuthenticationFailed(<span class="str">'No public key registered'</span>)
+
+        public_key = serialization.load_pem_public_key(
+            user.public_key_pem.encode(<span class="str">'utf-8'</span>)
+        )
+
+        body = request.body
+        <span class="kw">try</span>:
+            public_key.verify(
+                base64.b64decode(signature),
+                body,
+                padding.PKCS1v15(),
+                hashes.SHA256()
+            )
+        <span class="kw">except</span> <span class="cls">Exception</span>:
+            <span class="kw">raise</span> exceptions.AuthenticationFailed(<span class="str">'Invalid signature'</span>)
+
+        <span class="kw">return</span> (user, <span class="kw">None</span>)
+
+<span class="cmt"># authentication.py — mTLS Client Certificate</span>
+<span class="kw">class</span> <span class="cls">ClientCertificateAuthentication</span>(authentication.BaseAuthentication):
+    <span class="kw">def</span> <span class="fn">authenticate</span>(<span class="kw">self</span>, request):
+        verify = request.META.get(<span class="str">'HTTP_SSL_CLIENT_VERIFY'</span>)
+        <span class="kw">if</span> verify != <span class="str">'SUCCESS'</span>:
+            <span class="kw">return</span> <span class="kw">None</span>
+
+        client_dn = request.META.get(<span class="str">'HTTP_SSL_CLIENT_DN'</span>, <span class="str">''</span>)
+        cn = <span class="kw">self</span>._extract_cn(client_dn)
+
+        <span class="kw">try</span>:
+            user = User.objects.get(client_cert_cn=cn)
+        <span class="kw">except</span> User.DoesNotExist:
+            <span class="kw">raise</span> exceptions.AuthenticationFailed(<span class="str">'No such user'</span>)
+
+        <span class="kw">return</span> (user, <span class="kw">None</span>)
+
+    <span class="kw">def</span> <span class="fn">_extract_cn</span>(<span class="kw">self</span>, dn):
+        <span class="kw">for</span> part <span class="kw">in</span> dn.split(<span class="str">'/'</span>):
+            <span class="kw">if</span> part.startswith(<span class="str">'CN='</span>):
+                <span class="kw">return</span> part[<span class="num">3</span>:]
+        <span class="kw">return</span> dn
+
+<span class="cmt"># settings.py</span>
+<span class="cls">REST_FRAMEWORK</span> = {
+    <span class="str">'DEFAULT_AUTHENTICATION_CLASSES'</span>: [
+        <span class="str">'myapp.authentication.RSASignatureAuthentication'</span>,
+        <span class="str">'myapp.authentication.ClientCertificateAuthentication'</span>,
+    ],
+}
+
+<span class="cmt"># views.py — Protected endpoint (Function Based View)</span>
+<span class="kw">from</span> rest_framework.decorators <span class="kw">import</span> api_view
+
+<span class="decorator">@api_view</span>([<span class="str">'GET'</span>])
+<span class="kw">def</span> <span class="fn">protected_view</span>(request):
+    <span class="kw">return</span> Response({
+        <span class="str">'message'</span>: <span class="str">'Hello, '</span> + request.user.username,
+        <span class="str">'auth_method'</span>: <span class="str">'RSA signature or mTLS'</span>,
+    })
+
+<span class="cmt"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> .views <span class="kw">import</span> register_view, protected_view
+
+urlpatterns = [
+    path(<span class="str">'register/'</span>, register_view, name=<span class="str">'register'</span>),
+    path(<span class="str">'protected/'</span>, protected_view, name=<span class="str">'protected'</span>),
+    <span class="cmt"># No login endpoint needed — auth happens per-request!</span>
+]
+
+<span class="cmt"># Client usage (RSA key-pair with Python)</span>
+<span class="cmt"># 1. Register (provide your public key)</span>
+<span class="cmt"># curl -X POST http://api.example.com/register/ \</span>
+<span class="cmt">#   -H "Content-Type: application/json" \</span>
+<span class="cmt">#   -d '{"username":"device_001","email":"d@example.com","password":"secret123","password2":"secret123","public_key_pem":"-----BEGIN PUBLIC KEY-----\nMIIB..."}'</span>
+
+<span class="cmt"># 2. Sign request with private key and send</span>
+<span class="kw">from</span> cryptography.hazmat.primitives <span class="kw">import</span> serialization
+<span class="kw">from</span> cryptography.hazmat.primitives.asymmetric <span class="kw">import</span> padding
+<span class="kw">from</span> cryptography.hazmat.primitives <span class="kw">import</span> hashes
+<span class="kw">import</span> base64, requests
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">'client_private.pem'</span>, <span class="str">'rb'</span>) <span class="kw">as</span> f:
+    private_key = serialization.load_pem_private_key(f.read(), password=<span class="kw">None</span>)
+
+body = <span class="str">b'{\"action\":\"transfer\",\"amount\":100}'</span>
+signature = private_key.sign(body, padding.PKCS1v15(), hashes.SHA256())
+
+requests.post(
+    <span class="str">'https://api.example.com/protected/'</span>,
+    data=body,
+    headers={
+        <span class="str">'X-Api-Key'</span>: <span class="str">'device_001'</span>,
+        <span class="str">'X-Signature'</span>: base64.b64encode(signature).decode(),
+        <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+    }
+)
+
+<span class="cmt"># Client usage (mTLS with curl)</span>
+<span class="cmt"># curl --cert client.crt --key client.key --cacert ca.crt \</span>
+<span class="cmt">#      https://api.example.com/protected/</span></div>
+    </div>
+
+    <div class="highlight-box positive">
+      <strong>Pros:</strong> Highest security — no shared secrets over the wire, non-repudiation (proof of origin), no token expiry management, excellent for IoT and microservices.
+    </div>
+    <div class="highlight-box danger">
+      <strong>Cons:</strong> Complex setup (certificate infrastructure), key management overhead, harder to rotate keys, not suitable for browser-based SPAs, requires cryptography knowledge.
+    </div>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="panel" id="panel-compare">
+    <div class="card">
+      <div class="card-title">Side-by-Side Comparison</div>
+    </div>
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Feature</th><th>Session</th><th>Token</th><th>JWT</th><th>PEM / mTLS</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>View Type</td>
+          <td><span class="tag tag-good">Function Based</span></td>
+          <td><span class="tag tag-good">Function Based</span></td>
+          <td><span class="tag tag-good">Function Based</span></td>
+          <td><span class="tag tag-good">Function Based</span></td>
+        </tr>
+        <tr>
+          <td>Storage</td>
+          <td>Server-side (DB/cache)</td>
+          <td>Database</td>
+          <td>Client-side</td>
+          <td>Client certificate / key file</td>
+        </tr>
+        <tr>
+          <td>DB lookup per request</td>
+          <td><span class="tag tag-bad">Yes</span></td>
+          <td><span class="tag tag-bad">Yes</span></td>
+          <td><span class="tag tag-good">No</span></td>
+          <td><span class="tag tag-good">No</span> (TLS layer)</td>
+        </tr>
+        <tr>
+          <td>Scalability</td>
+          <td><span class="tag tag-mid">Medium</span></td>
+          <td><span class="tag tag-mid">Medium</span></td>
+          <td><span class="tag tag-good">High</span></td>
+          <td><span class="tag tag-good">High</span></td>
+        </tr>
+        <tr>
+          <td>Token expiry</td>
+          <td><span class="tag tag-good">Session-based</span></td>
+          <td><span class="tag tag-bad">No expiry</span></td>
+          <td><span class="tag tag-good">Built-in</span></td>
+          <td><span class="tag tag-good">Certificate expiry</span></td>
+        </tr>
+        <tr>
+          <td>Revocation</td>
+          <td><span class="tag tag-good">Instant</span></td>
+          <td><span class="tag tag-good">Delete token</span></td>
+          <td><span class="tag tag-mid">Blacklist needed</span></td>
+          <td><span class="tag tag-good">Revoke cert</span></td>
+        </tr>
+        <tr>
+          <td>Register endpoint</td>
+          <td><code>@api_view(['POST'])</code></td>
+          <td><code>@api_view(['POST'])</code></td>
+          <td><code>@api_view(['POST'])</code></td>
+          <td><code>@api_view(['POST'])</code></td>
+        </tr>
+        <tr>
+          <td>Login endpoint</td>
+          <td><code>@api_view(['POST']) + login()</code></td>
+          <td><code>@api_view(['POST']) + Token</code></td>
+          <td><code>@api_view(['POST']) + RefreshToken</code></td>
+          <td>None (per-request auth)</td>
+        </tr>
+        <tr>
+          <td>Best for</td>
+          <td>Browser apps</td>
+          <td>Simple APIs</td>
+          <td>SPAs, Mobile</td>
+          <td>IoT, Microservices, Enterprise</td>
+        </tr>
+        <tr>
+          <td>Complexity</td>
+          <td><span class="tag tag-good">Low</span></td>
+          <td><span class="tag tag-good">Low</span></td>
+          <td><span class="tag tag-mid">Medium</span></td>
+          <td><span class="tag tag-bad">High</span></td>
+        </tr>
+        <tr>
+          <td>CSRF protection</td>
+          <td><span class="tag tag-good">Built-in</span></td>
+          <td><span class="tag tag-good">Not needed</span></td>
+          <td><span class="tag tag-good">Not needed</span></td>
+          <td><span class="tag tag-good">Not needed</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card" style="margin-top: 20px;">
+      <div class="card-title">Decision Guide</div>
+      <div class="card-body">
+        <ul class="step-list">
+          <li><div class="step-num">1</div><div><strong>Browser + Django templates?</strong> &rarr; <strong>Session Authentication</strong></div></li>
+          <li><div class="step-num">2</div><div><strong>Simple API with few clients?</strong> &rarr; <strong>Token Authentication</strong></div></li>
+          <li><div class="step-num">3</div><div><strong>SPA / Mobile app with scale needs?</strong> &rarr; <strong>JWT Authentication</strong></div></li>
+          <li><div class="step-num">4</div><div><strong>Service-to-service, IoT, or high-security?</strong> &rarr; <strong>PEM / mTLS</strong></div></li>
+          <li><div class="step-num">5</div><div><strong>Multiple client types?</strong> &rarr; Combine: <strong>Session</strong> for web, <strong>JWT</strong> for API consumers.</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Django REST Framework Authentication Guide — Function Based Views — Custom Register &amp; Login for Every Method
+  </div>
+</div>
+
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+    if (btn) btn.classList.add('active');
+    const panel = document.getElementById('panel-' + name);
+    if (panel) panel.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.tab-btn').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+</script>
+</body>
+</html>

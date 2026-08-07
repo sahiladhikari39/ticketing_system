@@ -1,0 +1,377 @@
+/* ---------------------------------------------------------------
+   Section headers -- used to label a block of a form or a page
+   region. The small caps + letter-spacing treatment reads as a
+   plate on equipment rather than a web heading, which suits a
+   field-service tool.
+   --------------------------------------------------------------- */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* An internal-only region. The warm edge is the same colour used for
+   internal notes on tickets, so "staff only" looks consistent
+   everywhere it appears rather than being relearned per screen. */
+.zone-internal {
+  border-left: 3px solid var(--accent-warn);
+  background: var(--accent-warn-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 18px 20px;
+}
+
+.zone-customer {
+  border-left: 3px solid var(--accent-success);
+  background: var(--accent-success-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 18px 20px;
+}
+
+.zone-note {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+
+/* ---------------------------------------------------------------
+   One-time secret reveal.
+
+   This is the highest-stakes moment in the whole interface: the code
+   is shown once and is genuinely unrecoverable afterwards. So it gets
+   the boldest treatment in the app -- oversized, monospaced, widely
+   tracked, because it is read aloud or copied onto a printed sheet
+   for someone who has no account.
+   --------------------------------------------------------------- */
+.secret-reveal {
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+.secret-reveal-value {
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--primary-hover);
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+.secret-reveal-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+/* ---------------------------------------------------------------
+   Knowledge base -- video is the characteristic artifact here, so it
+   leads each card rather than sitting below the text.
+   --------------------------------------------------------------- */
+.kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.kb-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.kb-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.kb-card video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0d1214;
+  display: block;
+}
+
+.kb-card-body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.kb-card-equipment {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.kb-card-problem {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.kb-field {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.kb-field-label {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.kb-no-video {
+  aspect-ratio: 16 / 9;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+/* ---------------------------------------------------------------
+   Permission picker for dynamic staff roles.
+   --------------------------------------------------------------- */
+.perm-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.perm-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.88rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.perm-option:hover {
+  border-color: var(--primary);
+}
+
+.perm-option.is-on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.perm-option input {
+  margin-top: 2px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 13px 16px;
+  font-size: 0.92rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* Upload pair on the ticket form -- stacks on narrow screens rather
+   than squeezing two file inputs side by side. */
+.upload-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.field-hint {
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+
+.file-chip:hover { border-color: var(--primary); }
+.file-chip::before { content: "\1F4CE"; }
+
+/* Settings icon sits on the same optical line as the adjacent button. */
+.topbar-settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.topbar-settings:hover,
+.topbar-settings.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+@media (max-width: 720px) {
+  .upload-row { grid-template-columns: 1fr; }
+
+  /* Tables become the main readability problem on a phone. Let them
+     scroll sideways inside their card instead of forcing the whole
+     page wide or truncating columns. */
+  .card > table,
+  .data-table { display: block; overflow-x: auto; white-space: nowrap; }
+
+  .kb-grid { grid-template-columns: 1fr; }
+  .secret-reveal-value { font-size: 1.25rem; }
+}
+
+/* ---------------------------------------------------------------
+   Custom file input -- see components/FileInput.jsx for why the
+   native one isn't used directly (its filename text overflows).
+   --------------------------------------------------------------- */
+.file-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.file-input-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-input-button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.file-input-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.file-input-native:focus-visible + .file-input-button {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.file-input-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* ---------------------------------------------------------------
+   Success toast. Deliberately prominent: the previous inline
+   confirmation sat at 0.82rem inside a sidebar field and was easy to
+   miss entirely, which meant people re-clicked assign wondering
+   whether it had worked.
+   --------------------------------------------------------------- */
+.toast-success {
+  position: fixed;
+  top: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 26px;
+  border-radius: var(--radius);
+  background: var(--accent-success);
+  color: white;
+  font-size: 1.02rem;
+  font-weight: 600;
+  box-shadow: 0 8px 28px -6px rgba(18, 24, 26, 0.28);
+  animation: toast-in 0.22s ease-out;
+  max-width: calc(100vw - 32px);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Respect a reduced-motion preference -- the toast still appears,
+   it just doesn't slide. */
+@media (prefers-reduced-motion: reduce) {
+  .toast-success { animation: none; }
+}

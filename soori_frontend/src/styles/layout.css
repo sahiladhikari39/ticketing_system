@@ -1,0 +1,258 @@
+/* Top navbar layout (replaced the earlier left sidebar). The whole
+   page scrolls normally here -- the old fixed-height/independent-scroll
+   trick existed only because a side-by-side flex layout made the
+   sidebar stretch to match the content's height. A horizontal bar
+   doesn't have that problem, so this is simpler. */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(18, 24, 26, 0.05), 0 4px 16px -8px rgba(18, 24, 26, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.topbar-brand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topbar-brand span {
+  color: var(--primary);
+}
+
+.topbar-primary-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.topbar-primary-link {
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.topbar-primary-link:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.topbar-primary-link.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-urgent);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nav-menu {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+}
+
+.nav-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.nav-menu-trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-menu-trigger:hover,
+.nav-menu-trigger.is-open {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.nav-menu-chevron {
+  margin-left: auto;
+  transition: transform 0.15s ease;
+}
+
+.nav-menu-trigger.is-open .nav-menu-chevron {
+  transform: rotate(180deg);
+}
+
+.nav-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-menu-item {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.94rem;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.nav-menu-item:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.nav-menu-item.active {
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.topbar-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  max-width: 240px;
+}
+
+.topbar-user-meta strong {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-settings {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.topbar-settings:hover,
+.topbar-settings.active {
+  color: var(--primary);
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-header h1 {
+  font-size: var(--text-h1);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.page-header p {
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 860px) {
+  /* Let the bar wrap onto multiple rows on narrow screens rather than
+     squeezing everything into 60px of height. */
+  .topbar-inner {
+    height: auto;
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .topbar-primary-nav {
+    order: 3;
+    width: 100%;
+    flex: none;
+  }
+  .nav-menu {
+    flex: 0 0 auto;
+  }
+  .topbar-user {
+    flex-shrink: 0;
+  }
+  .main-content {
+    padding: 20px 16px;
+  }
+}

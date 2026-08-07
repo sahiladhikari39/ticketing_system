@@ -1,0 +1,199 @@
+:root {
+  /* Color -- evolved from a flatter teal/slate into a richer, more
+     confident jade-teal. Still deliberately NOT the generic AI-design
+     defaults: no warm-cream-and-serif, no near-black-and-neon. A
+     single warm accent (--accent-signal) is reserved ONLY for the
+     landing page's signature moment and urgent states -- everywhere
+     else stays quiet and disciplined on purpose. */
+  --ink: #12181a;
+  --ink-soft: #5c6b6e;
+  --paper: #f2f5f3;
+  --surface: #ffffff;
+  --border: #e1e6e3;
+
+  --primary: #0f6b63;
+  --primary-hover: #0a4b45;
+  --primary-soft: #e1efed;
+
+  --accent-signal: #d9642c;
+  --accent-urgent: #c2542d;
+  --accent-urgent-soft: #f5e3db;
+  --accent-success: #2e8b57;
+  --accent-success-soft: #e3ede6;
+  --accent-warn: #b8860b;
+  --accent-warn-soft: #f3ecd8;
+
+  --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* A real type scale, not ad-hoc font-sizes per element -- headline
+     sizes flex between mobile and desktop with clamp() instead of a
+     hard breakpoint jump. */
+  --text-hero: clamp(2.25rem, 4.5vw, 3.4rem);
+  --text-h1: clamp(1.5rem, 2.5vw, 1.85rem);
+
+  --radius: 10px;
+  --radius-sm: 7px;
+  --shadow-sm: 0 1px 2px rgba(18, 24, 26, 0.06);
+  --shadow-md: 0 8px 24px -4px rgba(18, 24, 26, 0.1), 0 2px 6px rgba(18, 24, 26, 0.05);
+  --shadow-lg: 0 20px 40px -8px rgba(18, 24, 26, 0.16), 0 4px 12px rgba(18, 24, 26, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+a {
+  color: var(--primary);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 1px 2px rgba(15, 107, 99, 0.25);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 107, 99, 0.28);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.field input,
+.field select,
+.field textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.error-banner {
+  background: var(--accent-urgent-soft);
+  color: var(--accent-urgent);
+  border: 1px solid var(--accent-urgent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-soft);
+}
+
+.empty-state h3 {
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

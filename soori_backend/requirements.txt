@@ -1,0 +1,7 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+python-dateutil
+python-dotenv
+argon2-cffi
