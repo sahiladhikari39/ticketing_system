@@ -95,8 +95,28 @@ MIDDLEWARE = [
     # Sends X-Frame-Options, which stops another site embedding Soori in
     # a hidden iframe and tricking a logged-in user into clicking things
     # they can't see (clickjacking).
+    #
+    # Swapped for FrameAncestorsMiddleware below when an embedding host
+    # IS configured -- see the FRAME_ANCESTORS block further down.
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Origins allowed to embed Soori in an iframe, e.g.
+#   DJANGO_FRAME_ANCESTORS=https://globalnepalgroup.com
+# Unset (the default) means nothing may frame us at all.
+_frame_ancestors = os.environ.get("DJANGO_FRAME_ANCESTORS", "")
+FRAME_ANCESTORS = [o.strip() for o in _frame_ancestors.split(",") if o.strip()]
+
+if FRAME_ANCESTORS:
+    # REPLACE rather than append: X-Frame-Options: DENY and a CSP that
+    # permits framing are contradictory instructions, and which one wins
+    # varies by browser. Only one framing header should ever be sent.
+    MIDDLEWARE = [
+        "core.middleware.FrameAncestorsMiddleware"
+        if m == "django.middleware.clickjacking.XFrameOptionsMiddleware"
+        else m
+        for m in MIDDLEWARE
+    ]
 
 if DEBUG:
     # Prints the ACTUAL body of any rejected API request to the
@@ -249,15 +269,39 @@ SIMPLE_JWT = {
 
 # CORS: the React dev server runs on a different origin (port) than
 # this API, so the browser blocks the frontend's requests unless the
-# API explicitly allows that origin. Covers both Create React App's
-# default port (3000) and Vite's default (5173) -- adjust/add your
-# actual frontend's dev URL and, later, its real deployed domain.
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+# API explicitly allows that origin.
+#
+# Env-driven for the same reason DEBUG and ALLOWED_HOSTS are: a
+# deployment shouldn't have to edit source to name its own frontend,
+# and a hardcoded list quietly shipping localhost origins to
+# production is exactly the kind of thing nobody notices. Set:
+#   DJANGO_CORS_ALLOWED_ORIGINS=https://support.example.com,https://example.com
+#
+# The dev fallback covers Create React App's default port (3000) and
+# Vite's (5173), and applies ONLY when DEBUG is on -- with DEBUG off
+# and nothing configured, no cross-origin caller is allowed, which
+# fails visibly rather than half-working.
+_cors = os.environ.get("DJANGO_CORS_ALLOWED_ORIGINS", "")
+if _cors:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(",") if o.strip()]
+elif DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = []
+
+# Origins Django will accept unsafe (POST/PUT/DELETE) requests from
+# when a CSRF token is involved -- the Django admin and DRF's browsable
+# API both need this once they're served over HTTPS behind a proxy.
+# The JWT API path doesn't use CSRF at all (Bearer tokens aren't sent
+# automatically by the browser, which is the thing CSRF protects
+# against), so this is not what makes the React app work.
+_csrf = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf.split(",") if o.strip()]
 
 # NOTE: there's deliberately no FRONTEND_URL setting here anymore.
 # Password resets use an emailed 6-digit CODE rather than a link, so
