@@ -1,0 +1,42 @@
+# Secrets. .env holds the Django secret key, database password and
+# email credentials -- it must never be committed. Use .env.example
+# (which is committed) as the template of what keys are needed.
+.env
+*.env
+!.env.example
+
+# Local database. It's a binary file, so git cannot merge it: if two
+# people both use the app, every pull is an unresolvable conflict.
+# Each developer keeps their own.
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
+
+# Uploaded files (ticket attachments, videos, customer documents).
+# These belong in object storage in production, never in the repo.
+media/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtualenvs. Rebuild from requirements.txt instead -- a committed
+# venv contains absolute paths from whoever created it and will not
+# run on anyone else's machine.
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

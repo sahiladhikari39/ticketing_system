@@ -20,3 +20,14 @@ django-cors-headers==4.9.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 argon2-cffi==25.1.0
+
+# Postgres driver. Only actually used when DB_ENGINE points at
+# postgresql (see settings.py) -- installing it changes nothing while
+# the default SQLite config is in use, so it's safe to have here from
+# the start rather than as a deploy-time surprise.
+#
+# psycopg 3, not psycopg2: it's the current version and what Django 6
+# recommends. The [binary] extra ships prebuilt wheels, which avoids
+# needing a C compiler and Postgres client headers on every machine
+# that installs this.
+psycopg[binary]==3.3.4
