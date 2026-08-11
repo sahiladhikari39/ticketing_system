@@ -87,31 +87,16 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    # Sends X-Frame-Options, which stops another site embedding Soori in
-    # a hidden iframe and tricking a logged-in user into clicking things
-    # they can't see (clickjacking).
+    # Sends X-Frame-Options: DENY, which stops any site embedding Soori
+    # in a hidden iframe and tricking a logged-in user into clicking
+    # things they can't see (clickjacking).
     #
-    # Swapped for FrameAncestorsMiddleware below when an embedding host
-    # IS configured -- see the FRAME_ANCESTORS block further down.
+    # Nothing needs to frame this app: the client's website serves it by
+    # PROXYING /support through to here, so the browser sees one origin
+    # and there's no iframe involved. Denying framing outright is
+    # therefore both the safe setting and the correct one.
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-# Origins allowed to embed Soori in an iframe, e.g.
-#   DJANGO_FRAME_ANCESTORS=https://globalnepalgroup.com
-# Unset (the default) means nothing may frame us at all.
-_frame_ancestors = os.environ.get("DJANGO_FRAME_ANCESTORS", "")
-FRAME_ANCESTORS = [o.strip() for o in _frame_ancestors.split(",") if o.strip()]
-
-if FRAME_ANCESTORS:
-    # REPLACE rather than append: X-Frame-Options: DENY and a CSP that
-    # permits framing are contradictory instructions, and which one wins
-    # varies by browser. Only one framing header should ever be sent.
-    MIDDLEWARE = [
-        "core.middleware.FrameAncestorsMiddleware"
-        if m == "django.middleware.clickjacking.XFrameOptionsMiddleware"
-        else m
-        for m in MIDDLEWARE
-    ]
 
 if DEBUG:
     # Prints the ACTUAL body of any rejected API request to the

@@ -39,12 +39,20 @@ export default function LoginPage() {
         background: "var(--paper)",
       }}
     >
-      {/* Explicit way back to the landing page -- without this, anyone
-          who lands here directly (a bookmark, a shared link) has no
-          way to see what Soori even is before signing in. */}
+      {/* "Home" means the HOST site's home, not this app's landing
+          page. Served under /support on a client's website, this app
+          isn't somewhere you arrive on purpose -- you get here from
+          their site, and after logging out that's where you expect to
+          go back to. Their homepage, not a page selling Soori.
+
+          A plain anchor, deliberately, not react-router's <Link>: this
+          has to leave the SPA entirely. <Link> would be handled
+          client-side and just render our own landing page at
+          /support. Running standalone at a domain root, "/" is still
+          home, so this is correct either way. */}
       <div style={{ padding: "20px 24px" }}>
-        <Link
-          to="/"
+        <a
+          href="/"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -56,7 +64,7 @@ export default function LoginPage() {
           }}
         >
           &larr; Back to home
-        </Link>
+        </a>
       </div>
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>

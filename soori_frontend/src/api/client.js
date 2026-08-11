@@ -1,5 +1,3 @@
-import { isEmbedded, notifyParentUnauthenticated } from "../utils/iframeEmbed";
-
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 const STORAGE_KEY = "soori_auth";
 
@@ -124,15 +122,11 @@ export async function apiFetch(path, options = {}) {
   if (res.status === 401) {
     // Refresh failed too -- the session is genuinely over.
     setStoredAuth(null);
-    if (isEmbedded()) {
-      // Embedded in someone else's page: redirecting ourselves would
-      // render our standalone login screen inside their iframe, which
-      // looks like a broken widget. Hand it to the host page instead
-      // and let it decide how to present a signed-out state.
-      notifyParentUnauthenticated();
-    } else {
-      window.location.href = "/login";
-    }
+    // A raw location assignment bypasses React Router, so it does NOT
+    // get the basename applied -- this has to carry the base path
+    // itself or it lands on the host site's 404 instead of our login
+    // screen. BASE_URL already ends in a slash.
+    window.location.href = `${import.meta.env.BASE_URL}login`;
     throw new Error("Session expired. Please log in again.");
   }
 

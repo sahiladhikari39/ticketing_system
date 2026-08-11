@@ -38,16 +38,18 @@ export default function AccessLoginPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--paper)" }}>
+      {/* Host site's home, not this app's landing page — a plain
+          anchor so it leaves the SPA. See the note in LoginPage. */}
       <div style={{ padding: "20px 24px" }}>
-        <Link
-          to="/"
+        <a
+          href="/"
           style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             fontSize: "0.88rem", fontWeight: 600, color: "var(--ink-soft)", textDecoration: "none",
           }}
         >
           &larr; Back to home
-        </Link>
+        </a>
       </div>
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
