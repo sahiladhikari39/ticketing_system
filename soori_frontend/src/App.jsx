@@ -196,10 +196,26 @@ function AppRoutes() {
   );
 }
 
+/**
+ * Every route below is written as if this app owns the domain root
+ * ("/login", "/tickets"). It doesn't -- it's served under /support on
+ * the client's website. `basename` is what reconciles the two: React
+ * Router strips it from the URL before matching, and adds it back to
+ * every <Link> it renders.
+ *
+ * Without it, clicking "Sign in" would navigate to
+ * globalnepalgroup.com/login -- their 404 page, not ours.
+ *
+ * Read from Vite's own BASE_URL so this can never drift out of sync
+ * with the `base` in vite.config.js. Router wants no trailing slash;
+ * BASE_URL always has one.
+ */
+const ROUTER_BASENAME = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={ROUTER_BASENAME}>
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>

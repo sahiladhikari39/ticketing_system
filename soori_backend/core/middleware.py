@@ -1,47 +1,7 @@
 import json
 import logging
 
-from django.conf import settings
-
 logger = logging.getLogger("soori.errors")
-
-
-class FrameAncestorsMiddleware:
-    """
-    Allows a specific external site to embed Soori in an iframe.
-
-    Django's XFrameOptionsMiddleware sends `X-Frame-Options: DENY` by
-    default, which blocks ALL framing -- correct while nothing embeds
-    us, and exactly what stops the GNG site's /support page from
-    rendering anything but a browser error.
-
-    `X-Frame-Options` can't express "allow this one other origin": its
-    only values are DENY and SAMEORIGIN, and support.<domain> framed by
-    <domain> is a different ORIGIN even though it's the same site. The
-    CSP `frame-ancestors` directive is the modern replacement that can,
-    so this middleware REPLACES XFrameOptionsMiddleware (see the
-    MIDDLEWARE list in settings.py) rather than sitting alongside it --
-    two headers disagreeing about framing is how you get behaviour that
-    differs per browser.
-
-    Driven by DJANGO_FRAME_ANCESTORS (comma-separated origins). When
-    that's unset, settings.py keeps Django's XFrameOptionsMiddleware
-    instead and nothing can frame us -- the safe default is preserved
-    by not opting in, never by configuring this loosely.
-    """
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-        origins = getattr(settings, "FRAME_ANCESTORS", []) or []
-        # 'self' keeps our own pages able to frame each other; without
-        # it, listing any ancestor implicitly excludes ourselves.
-        self.header_value = "frame-ancestors 'self' " + " ".join(origins)
-
-    def __call__(self, request):
-        response = self.get_response(request)
-        # Don't clobber a policy a view set deliberately.
-        response.setdefault("Content-Security-Policy", self.header_value)
-        return response
 
 
 class LogBadRequestBodyMiddleware:
