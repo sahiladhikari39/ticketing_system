@@ -6,11 +6,6 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Loads a .env file (if one exists) into os.environ -- this is where
-# real Gmail credentials go (see .env.example), kept OUT of source
-# code entirely so they never end up committed or shared in a zip.
-# Running with no .env file at all is completely fine: every setting
-# below that reads from it has a safe fallback.
 load_dotenv(BASE_DIR / ".env")
 
 import secrets
