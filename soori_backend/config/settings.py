@@ -140,9 +140,69 @@ TEMPLATES = [
     },
 ]
 
-DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
-}
+# ---------------------------------------------------------------------
+# Database.
+#
+# Defaults to SQLite so a fresh clone runs with no database to install
+# and no configuration at all. Switching to Postgres is a .env change,
+# never a code change:
+#
+#   DB_ENGINE=django.db.backends.postgresql
+#   DB_NAME=soori_db
+#   DB_USER=postgres
+#   DB_PASSWORD=...
+#   DB_HOST=localhost
+#   DB_PORT=5432
+#
+# Why a branch instead of one dict: SQLite is a FILE, so NAME is a
+# filesystem path (hence BASE_DIR /) and user/password/host/port are
+# meaningless. Every other backend is a network service where NAME is
+# just a database name and the connection details are what matter.
+# Passing a BASE_DIR path to Postgres, or credentials to SQLite, is
+# how you get errors that don't say what's actually wrong.
+#
+# SQLite is fine for local development, but NOT for a real deployment:
+# most hosts wipe the disk on redeploy (taking every ticket with it),
+# and it locks the whole database on writes, so concurrent users hit
+# "database is locked".
+# ---------------------------------------------------------------------
+DB_ENGINE = os.environ.get("DB_ENGINE", "django.db.backends.sqlite3")
+DB_NAME = os.environ.get("DB_NAME", "db.sqlite3")
+
+if DB_ENGINE == "django.db.backends.sqlite3":
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": BASE_DIR / DB_NAME,
+        }
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": DB_ENGINE,
+            "NAME": DB_NAME,
+            "USER": os.environ.get("DB_USER", ""),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", ""),
+            "PORT": os.environ.get("DB_PORT", ""),
+            # Hold connections open for reuse instead of opening a new
+            # one per request. Negligible for SQLite (it's a file open),
+            # but every Postgres connection is a TCP handshake plus
+            # authentication -- paying that on every request is a real,
+            # measurable cost.
+            "CONN_MAX_AGE": int(os.environ.get("DB_CONN_MAX_AGE", "600")),
+        }
+    }
+
+# Locale. TIME_ZONE is worth setting deliberately: it decides what
+# timezone ticket timestamps are displayed in. Left at UTC, a ticket
+# raised at 3pm in Kathmandu reads as 09:15 -- set TIME_ZONE=Asia/Kathmandu
+# in .env if the people using this are there.
+LANGUAGE_CODE = os.environ.get("LANGUAGE_CODE", "en-us")
+TIME_ZONE = os.environ.get("TIME_ZONE", "UTC")
+USE_I18N = True
+# Timestamps are stored in UTC and converted on display. Keep this on.
+USE_TZ = True
 
 AUTH_USER_MODEL = "accounts.User"
 
